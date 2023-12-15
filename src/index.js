@@ -10,15 +10,28 @@ const mdLinks = (route) => {
   return new Promise((resolve, reject) => {
     //Path Validate
     const completePath = toAbsolutePath(route);
-    if(!existsPath(route)) {
+    if(!existsPath(completePath)) {
       return reject("Ruta inexistente");
     }
-    if(!isMarkdownFile(route)) {
+    if(!isMarkdownFile(completePath)) {
       return reject('El archivo no es tipo marckdown');
     }
-    const content = readFileContent(route);
-    const arrLinks = extractLinks(content, route);
-    return resolve(arrLinks);
+    // const content = readFileContent(route);
+    readFileContent(completePath)
+      .then((data)=>{
+        const arrLinks = extractLinks(data, route);
+        if(options.validate){
+          //llamar a función validar y resolver ese retorno de validar
+          //función validar tiene cómo parametro un array de objetos ( arrLinks)
+          // validar(arrLinks)
+          // .then((arrLinksValidados)=>{
+          //   resolve(arrLinksValidados)
+          // })
+        } else {
+
+          resolve(arrLinks);
+        }
+      })
     // .then((content) => {
     //   const arrLinks = extractLinks(data, file);
     //   resolve(arrLinks);

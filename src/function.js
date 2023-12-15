@@ -26,17 +26,17 @@ const isMarkdownFile = (route) => {
 
 //Read file
 const readFileContent = (route) => {
-    return fs.readFileSync(route, "utf8", (err, data) => {
+    // return fs.readFileSync(route, "utf8", (err, data) => {
         // if(err) reject('Error de lectura')
-        return data;
-    });
-    // return new Promise((resolve, reject) => {
-    //     fs.readFileSync(route, "utf8", (err, data) => {
-    //         if(err) reject('Error de lectura')
-    //         resolve(data)
-    //     });
-    // })
-} 
+    //     return data;
+    // });
+    return new Promise((resolve, reject) => {
+        fs.readFile(route, "utf8", (err, data) => {
+            if(err) reject('Error de lectura')
+            resolve(data)
+        });
+    })
+    } 
 
 //Extract links 
 const extractLinks = (data, file) => {
