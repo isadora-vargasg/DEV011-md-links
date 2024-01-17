@@ -1,7 +1,8 @@
 const fs = require("fs"); //File Sistem Node
 const path = require('path'); //Paths Node
 const { JSDOM } = require('jsdom');
-const marked = require("marked");
+const marked = require("marked"); 
+const axios = require('axios'); //Solicitudes HTTP
 
 //True = absolute path & false = relative path
 const isAbsolutePath = (route) => path.isAbsolute(route);
@@ -56,6 +57,35 @@ const extractLinks = (data, file) => {
     return arrLinks
 }
 
+//Función para validar links
+function validated(listLinks) {
+  // let dogs = ['hoa', 'maia', 'olivia']
+  // let mdogs = dogs.filter((dog) => dog.includes('m'))
+    const linkPromises = listLinks.map(link => { //map recorre cada objeto de objLink y genera un arreglo de
+      const url = link.href; //extrae URL
+      return axios.get(url) //Realiza la solicitud HTTP 
+        .then(response => { //Solicitud exitosa actualiza codigo de respuesta HTTP y ok en caso de exito
+          link.status = response.status;
+          link.ok = response.statusText;
+          return link;
+        })
+        .catch(error => {//Solicitud con error actualiza codigo de respuesta HTTP y fail en caso de exito
+          link.ok = 'Fail';
+          link.status = error.response ? error.response.status : 500;
+          return link;
+        });
+    });
+  
+    return Promise.all(linkPromises) //Devuelve una promesa esperar a que todas las promesas en linkPromises se resuelvan. Cuando todas las solicitudes estén completas, devuelve un array de enlaces validados.
+      .then(validated => {
+        return validated;
+      })
+      .catch(err => {
+        console.error('Error al validar enlaces:', err);
+        throw err;
+      });
+  }
+
 module.exports = {
     isAbsolutePath,
     toAbsolutePath,
@@ -63,4 +93,5 @@ module.exports = {
     isMarkdownFile,
     readFileContent,
     extractLinks,
+    validated,
 }

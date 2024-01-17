@@ -4,9 +4,10 @@ const {
   existsPath,
   isMarkdownFile,
   readFileContent,
-  extractLinks, } = require("./function.js");
+  extractLinks,
+  validated, } = require("./function.js");
 
-const mdLinks = (route) => {
+const mdLinks = (route, validate = false) => {
   return new Promise((resolve, reject) => {
     //Path Validate
     const completePath = toAbsolutePath(route);
@@ -20,7 +21,12 @@ const mdLinks = (route) => {
     readFileContent(completePath)
       .then((data)=>{
         const arrLinks = extractLinks(data, route);
-        if(options.validate){
+        if(validate){
+         validated(arrLinks)
+            .then((validatedLinks) => {
+              console.log(validatedLinks)
+            })
+
           //llamar a función validar y resolver ese retorno de validar
           //función validar tiene cómo parametro un array de objetos ( arrLinks)
           // validar(arrLinks)
@@ -28,7 +34,6 @@ const mdLinks = (route) => {
           //   resolve(arrLinksValidados)
           // })
         } else {
-
           resolve(arrLinks);
         }
       })
