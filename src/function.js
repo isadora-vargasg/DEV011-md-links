@@ -5,62 +5,56 @@ const marked = require("marked");
 const axios = require('axios'); //Solicitudes HTTP
 
 //True = absolute path & false = relative path
-const isAbsolutePath = (route) => path.isAbsolute(route);
+const isAbsolutePath = (route) => path.isAbsolute(route); //verifica si es una ruta absoluta
 
 
 //Path relative to path absolute
 const toAbsolutePath = (route) => {
-    return isAbsolutePath(route) ? route : path.resolve(route)
+    return isAbsolutePath(route) ? route : path.resolve(route)//si es una ruta absoluta entonces devuelve la ruta tal y como esta si es relativa entonces la convierte en absoluta
 }
 
 //Existing path
 const existsPath = (route) => {
-    return fs.existsSync(route);
+    return fs.existsSync(route);//con el modulo fs se comprueba que exista el archivo o directorio ingresado
 }
 
 //Is a markdown file
 const isMarkdownFile = (route) => {
-    const fileExtension = path.extname(route)
-    const markdownExtension = [".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown", ".text"];
-    return markdownExtension.includes(fileExtension);
+    const fileExtension = path.extname(route)//Usa modulo path para obtener la extención del archivo
+    const markdownExtension = [".md", ".mkd", ".mdwn", ".mdown", ".mdtxt", ".mdtext", ".markdown", ".text"];//aray con las extenciones validas
+    return markdownExtension.includes(fileExtension);//siel archivo es un markdow devuelve true y sino lo es devuelve false
 }
 
 //Read file
 const readFileContent = (route) => {
-    // return fs.readFileSync(route, "utf8", (err, data) => {
-        // if(err) reject('Error de lectura')
-    //     return data;
-    // });
     return new Promise((resolve, reject) => {
-        fs.readFile(route, "utf8", (err, data) => {
-            if(err) reject('Error de lectura')
-            resolve(data)
+        fs.readFile(route, "utf8", (err, data) => { //funcion readFile del modulo fs lee el contenido de un archivo. Parámetros route es la ruta del archivo y utf8 la codificación del archivo
+            if(err) reject('Error de lectura')//error al leer el archivo
+            resolve(data)//se ejecuto con exito la promesa y se pasa el contenido del archivo
         });
     })
     } 
 
 //Extract links 
 const extractLinks = (data, file) => {
-    const arrLinks = []
-    const html = marked.parse(data)
-    const dom = new JSDOM(html);
-    const nodeListA = dom.window.document.querySelectorAll("a")
-    nodeListA.forEach((anchor) => {
+    const arrLinks = [] //Crea variable que almacenara en un arreglo la información de cada link
+    const html = marked.parse(data) //Se usa la biblioteca marked para convertir el md a HTML
+    const dom = new JSDOM(html); //Usa jsdom para crear un DOM basado en el HTML para acceder a elementos HTML 
+    const nodeListA = dom.window.document.querySelectorAll("a") //Selecciona todos los elementos "a" en el HTML y los nodos resultantes se almacena 
+    nodeListA.forEach((anchor) => { //Se itera sobre cada nodo y se crea un objeto con las siguientes propiedades
         arrLinks.push(
             {
-                href: anchor.href,
-                text: anchor.textContent,
-                file,
+                href: anchor.href, //-url del link
+                text: anchor.textContent, //texto dentro del link
+                file, //archivo en el que se ejecuto
             }
         )
     })
-    return arrLinks
+    return arrLinks //regresa el array con los objetos para cada link
 }
 
 //Función para validar links
 function validated(listLinks) {
-  // let dogs = ['hoa', 'maia', 'olivia']
-  // let mdogs = dogs.filter((dog) => dog.includes('m'))
     const linkPromises = listLinks.map(link => { //map recorre cada objeto de objLink y genera un arreglo de
       const url = link.href; //extrae URL
       return axios.get(url) //Realiza la solicitud HTTP 
@@ -70,8 +64,8 @@ function validated(listLinks) {
           return link;
         })
         .catch(error => {//Solicitud con error actualiza codigo de respuesta HTTP y fail en caso de exito
-          link.ok = 'Fail';
           link.status = error.response ? error.response.status : 500;
+          link.ok = 'Fail';
           return link;
         });
     });
